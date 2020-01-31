@@ -1,0 +1,64 @@
+server:
+  port: 9091 #服务端口
+spring:
+  application:
+    name: api-gateway #指定服务名
+
+#zuul:
+#  routes:
+#    consumer: /consumer/** # 这里是映射路径
+#  prefix: /api
+#  retryable: true
+#  host:
+#    connect-timeout-millis: 10000
+#    socket-timeout-millis: 60000
+
+eureka:
+  client:
+    register-with-eureka: true # 是否注册自己的信息到EurekaServer，默认是true
+    fetch-registry: true # 是否拉取其它服务的信息，默认是true
+    serviceUrl:
+      defaultZone: http://127.0.0.1:9090/eureka
+  #instance:
+    #prefer-ip-address: true
+    #instance-id: ${spring.application.name}:${server.port}
+
+
+
+#eureka:
+#  client:
+#    register-with-eureka: true # 是否注册自己的信息到EurekaServer，默认是true
+#    fetch-registry: true # 是否拉取其它服务的信息，默认是true
+#    registry-fetch-interval-seconds: 5 # 获取服务列表的周期：5s
+#    service-url:
+#      defaultZone: http://127.0.0.1:8080
+
+ribbon:
+  ConnectTimeout: 60000 # Ribbon的连接超时时间
+  ReadTimeout: 60000 # Ribbon的数据读取超时时间
+  SocketTimeout: 10000
+  OkToRetryOnAllOperations: true # 是否对所有操作都进行重试
+  MaxAutoRetriesNextServer: 1 # 切换实例的重试次数
+  MaxAutoRetries: 1 # 对当前实例的重试次数
+
+hystrix:
+  command:
+    default:
+      execution:
+        timeout: #配置命令的执行，是否会超时
+          enabled: true
+        isolation:
+          thread:
+            timeoutInMilliseconds: 600000 # 设置hystrix的超时时间为6000ms(尽可能大)
+
+
+management:
+  #访问/actuator暴露出所有接口
+  endpoints:
+    web:
+      exposure:
+        include:  '*'
+  #配合Grafana的Dashboard设置的属性
+  metrics:
+    tags:
+      application: ${spring.application.name}

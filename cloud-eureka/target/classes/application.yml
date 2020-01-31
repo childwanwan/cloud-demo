@@ -1,0 +1,31 @@
+server:
+  port: 9090 # 端口
+
+spring:
+  application:
+    name: eureka-server # 应用名称，会在Eureka中显示
+eureka:
+  client:
+    register-with-eureka: false # 是否注册自己的信息到EurekaServer，默认是true
+    fetch-registry: false # 是否拉取其它服务的信息，默认是true
+    serviceUrl: # EurekaServer的地址，现在是自己的地址，如果是集群，需要加上其它Server的地址。
+      #defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka
+      defaultZone: http://127.0.0.1:9090/eureka
+  instance: # eureak实例定义
+    #hostname: 127.0.0.1 # 定义Eureka实例所在的主机名称
+    leaseRenewalIntervalInSeconds: 10
+    leaseExpirationDurationInSeconds: 30
+  server:
+    enableSelfPreservation: false
+    evictionIntervalTimerInMs: 60000
+
+management:
+  #访问/actuator暴露出所有接口
+  endpoints:
+    web:
+      exposure:
+        include:  '*'
+  #配合Grafana的Dashboard设置的属性
+  metrics:
+    tags:
+      application: ${spring.application.name}
