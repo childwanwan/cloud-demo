@@ -1,0 +1,66 @@
+apiVersion: v1
+data:
+  application.yml: "server:\r\n  port: 9091\r\nspring:\r\n  application:\r\n    name:
+    api-gateway\r\neureka:\r\n  client:\r\n    register-with-eureka: true\r\n    fetch-registry:
+    true\r\n    serviceUrl:\r\n      defaultZone: http://192.168.126.135:30001/eureka\r\nribbon:\r\n
+    \ ConnectTimeout: 60000\r\n  ReadTimeout: 60000\r\n  SocketTimeout: 10000\r\n
+    \ OkToRetryOnAllOperations: true\r\n  MaxAutoRetriesNextServer: 1\r\n  MaxAutoRetries:
+    1\r\nhystrix:\r\n  command:\r\n    default:\r\n      execution:\r\n        timeout:\r\n
+    \         enabled: true\r\n        isolation:\r\n          thread:\r\n            timeoutInMilliseconds:
+    600000\r\nmanagement:\r\n  endpoints:\r\n    web:\r\n      exposure:\r\n        include:
+    \ '*'\r\n  metrics:\r\n    tags:\r\n      application: ${spring.application.name}\r\n"
+kind: ConfigMap
+metadata:
+  name: cloud-zuul-configmap
+  namespace: cloud-demo
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cloud-zuul
+  namespace: cloud-demo
+  labels:
+    app: cloud-zuul
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cloud-zuul
+    spec:
+      containers:
+      - name: cloud-zuul
+        image: 192.168.126.150:5000/cloud-demo/cloud-zuul:1.0
+        #image: 192.168.126.150:5000/cloud-demo/cloud-eureka-kubernetes:1.0
+        imagePullPolicy: IfNotPresent
+        #args: ["--spring.config.location=application.properties"]
+        ports:
+        - containerPort: 9091
+        volumeMounts:
+        - name: cloud-zuul-config
+          mountPath: /data/java/config
+          #subPath: application.yml
+      volumes:
+      - name: cloud-zuul-config
+        configMap:
+          name: cloud-zuul-configmap
+          items:
+            - key: application.yml
+              path: application.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-zuul-service
+  namespace: cloud-demo
+  labels:
+    app: cloud-zuul-service
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 9091
+      targetPort: 9091
+      nodePort: 30002
+  selector:
+    app: cloud-zuul

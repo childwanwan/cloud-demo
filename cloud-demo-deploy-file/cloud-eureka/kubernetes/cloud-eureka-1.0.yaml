@@ -1,0 +1,69 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cloud-demo
+---
+apiVersion: v1
+data:
+  application.yml: "server:\r\n  port: 9090\r\n\r\nspring:\r\n  application:\r\n    name:
+    eureka-server\r\neureka:\r\n  client:\r\n    register-with-eureka: false\r\n    fetch-registry:
+    false\r\n    serviceUrl:\r\n      defaultZone: http://127.0.0.1:9090/eureka\r\n
+    \ instance:\r\n    leaseRenewalIntervalInSeconds: 10\r\n    leaseExpirationDurationInSeconds:
+    30\r\n  server:\r\n    enableSelfPreservation: false\r\n    evictionIntervalTimerInMs:
+    60000\r\n\r\nmanagement:\r\n  endpoints:\r\n    web:\r\n      exposure:\r\n        include:
+    \ '*'\r\n  metrics:\r\n    tags:\r\n      application: ${spring.application.name}\r\n"
+kind: ConfigMap
+metadata:
+  name: cloud-eureka-configmap
+  namespace: cloud-demo
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cloud-eureka
+  namespace: cloud-demo
+  labels:
+    app: cloud-eureka
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cloud-eureka
+    spec:
+      containers:
+      - name: cloud-eureka
+        image: 192.168.126.150:5000/cloud-demo/cloud-eureka:1.0
+        #image: 192.168.126.150:5000/cloud-demo/cloud-eureka-kubernetes:1.0
+        imagePullPolicy: IfNotPresent
+        #args: ["--spring.config.location=application.properties"]
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: cloud-eureka-config
+          mountPath: /data/java/config
+          #subPath: application.yml
+      volumes:
+      - name: cloud-eureka-config
+        configMap:
+          name: cloud-eureka-configmap
+          items:
+            - key: application.yml
+              path: application.yml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-eureka-service
+  namespace: cloud-demo
+  labels:
+    app: cloud-eureka-service
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
+      nodePort: 30001
+  selector:
+    app: cloud-eureka

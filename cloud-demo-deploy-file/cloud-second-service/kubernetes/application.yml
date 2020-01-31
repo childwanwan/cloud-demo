@@ -1,0 +1,34 @@
+server:
+  port: 10002
+spring:
+  application:
+    name: second-server
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://192.168.126.135:30001/eureka
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+swagger:
+  ui:
+    title: first-service接口Api文档
+    description: Wsg层暴露Api
+    termsOfServiceUrl: http://www.si-tech.com.cn
+    contact:
+      name: wanpp
+      url:
+      email: wanpp@si-tech.com.cn
+    version: 1.0
+management:
+  endpoints:
+    web:
+      exposure:
+        include:  '*'
+  metrics:
+    tags:
+      application: ${spring.application.name}

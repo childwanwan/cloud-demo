@@ -1,0 +1,49 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: cloud-demo-nginx
+  namespace: cloud-demo
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cloud-demo-view
+    spec:
+      containers:
+      - name: cloud-demo-nginx
+        image: 192.168.126.150:5000/cloud-demo/cloud-demo-view:laster
+        ports:
+        - containerPort: 10010
+        volumeMounts:
+        - mountPath: /etc/nginx/nginx.conf
+          name: conf
+          subPath: nginx.conf
+        - mountPath: /cloud-demo-view
+          name: view
+      volumes:
+      - name: conf
+        nfs:
+          path: /myfile/data/k8s-data/cloud-demo/conf/
+          server: 192.168.126.135
+      - name: view
+        nfs:
+          path: /myfile/data/k8s-data/cloud-demo/view/
+          server: 192.168.126.135
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cloud-demo-nginx
+  namespace: cloud-demo
+  labels:
+    app: cloud-demo-nginx-service
+spec:
+  type: NodePort 
+  ports:
+    - protocol: TCP
+      port: 10010
+      targetPort: 10010
+      nodePort: 30010
+  selector:
+    app: cloud-demo-view

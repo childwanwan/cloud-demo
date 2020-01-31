@@ -1,0 +1,45 @@
+server:
+  port: 10002
+spring:
+  application:
+    name: second-server # 应用名称
+  cloud:
+    loadbalancer:
+      retry:
+        enabled: true #是否开启重试(重新连接)
+eureka:
+  client:
+    serviceUrl: # EurekaServer地址
+      defaultZone: http://172.17.0.2:9090/eureka
+  instance:
+    prefer-ip-address: true # 当其它服务获取地址时提供ip而不是hostname
+    instance-id: ${spring.application.name}:${server.port}
+
+
+swagger:
+  ui:
+    title: first-service接口Api文档
+    description: Wsg层暴露Api
+    termsOfServiceUrl: http://www.si-tech.com.cn
+    contact:
+      name: wanpp
+      url:
+      email: wanpp@si-tech.com.cn
+    version: 1.0
+
+
+
+
+
+management:
+  #访问/actuator暴露出所有接口
+  endpoints:
+    web:
+      exposure:
+        include:  '*'
+  #配合Grafana的Dashboard设置的属性
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+
